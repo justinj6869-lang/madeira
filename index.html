@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4e78">
+<title>Madeira Money</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#fff; --ink:#16202b; --muted:#6b7683; --line:#e4e7eb;
+    --blue:#1f4e78; --blue2:#2e75b6; --green:#3f7d20; --amber:#b7791f; --red:#b3261e;
+    --chip:#eef1f4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12171d; --card:#1b222b; --ink:#e9edf1; --muted:#9aa6b2; --line:#2b333d;
+      --blue:#5a9bd8; --blue2:#4a86c5; --green:#7bbd5a; --amber:#e0a53a; --red:#e5695f;
+      --chip:#242c35;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px;line-height:1.45;padding-bottom:88px}
+  header{position:sticky;top:0;z-index:5;background:var(--blue);color:#fff;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  header h1{margin:0 0 10px;font-size:17px;letter-spacing:.2px;font-weight:650}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tile{background:rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
+  .tile .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;opacity:.85}
+  .tile .val{font-size:19px;font-weight:700;margin-top:2px}
+  .tile.big{grid-column:span 2;background:rgba(255,255,255,.18)}
+  .wrap{max-width:600px;margin:0 auto;padding:14px 12px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--muted);
+    border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;
+    display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+  .card .main{flex:1;min-width:0}
+  .card .desc{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+  .card .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .card .amt{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .card .amt.none{color:var(--amber);font-weight:600;font-size:12.5px}
+  .badge{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    padding:2px 7px;border-radius:6px;margin-top:6px}
+  .b-reimb{background:rgba(63,125,32,.15);color:var(--green)}
+  .b-sent{background:rgba(46,117,182,.15);color:var(--blue2)}
+  .b-ready{background:rgba(31,78,120,.12);color:var(--blue)}
+  .b-need{background:rgba(183,121,31,.15);color:var(--amber)}
+  .empty{text-align:center;color:var(--muted);padding:40px 0}
+  .fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:6;
+    width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:28px;
+    box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer}
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none;align-items:flex-end}
+  .sheet-bg.open{display:flex}
+  .sheet{background:var(--card);width:100%;max-width:600px;margin:0 auto;border-radius:18px 18px 0 0;
+    padding:18px 18px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:90vh;overflow:auto}
+  .sheet h2{margin:2px 0 14px;font-size:16px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:600}
+  input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg);color:var(--ink);font-size:15px;font-family:inherit}
+  .rowflex{display:flex;gap:10px}.rowflex>div{flex:1}
+  .btn{display:block;width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:650;
+    cursor:pointer;margin-top:10px}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.ghost{background:var(--chip);color:var(--ink)}
+  .btn.danger{background:transparent;color:var(--red);font-weight:600}
+  .act{display:block;width:100%;text-align:left;padding:14px 12px;border:none;border-bottom:1px solid var(--line);
+    background:transparent;color:var(--ink);font-size:15px;cursor:pointer}
+  .act:last-of-type{border-bottom:none}
+  .note-line{color:var(--muted);font-size:13px;margin:2px 0 8px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 90px);
+    background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13px;z-index:40;
+    opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:.95}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Madeira Money · 7260 Osceola</h1>
+  <div class="tiles">
+    <div class="tile"><div class="lbl">Spent (receipts)</div><div class="val" id="t-spent">—</div></div>
+    <div class="tile"><div class="lbl">Reimbursed</div><div class="val" id="t-reimb">—</div></div>
+    <div class="tile big"><div class="lbl">Batch 2 — ready to send David</div><div class="val" id="t-batch2">—</div></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="chips" id="chips">
+    <button class="chip on" data-f="ready">Ready to send</button>
+    <button class="chip" data-f="need">Needs receipt</button>
+    <button class="chip" data-f="done">Sent / reimbursed</button>
+    <button class="chip" data-f="all">All</button>
+  </div>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<button class="fab" id="add" aria-label="Add expense">+</button>
+
+<!-- Add sheet -->
+<div class="sheet-bg" id="addBg">
+  <div class="sheet">
+    <h2>Add expense</h2>
+    <label>Description *</label>
+    <input id="f-desc" placeholder="e.g. Bathroom vanity light">
+    <div class="rowflex">
+      <div><label>Amount ($) — leave blank if no receipt yet</label><input id="f-amt" inputmode="decimal" placeholder="0.00"></div>
+      <div><label>Date</label><input id="f-date" type="date"></div>
+    </div>
+    <div class="rowflex">
+      <div><label>Vendor / store</label><input id="f-store" placeholder="Home Depot, Amazon…"></div>
+      <div><label>Category</label><input id="f-cat" placeholder="Paint, Lumber…"></div>
+    </div>
+    <label>Notes</label>
+    <input id="f-notes" placeholder="order #, what's needed…">
+    <button class="btn primary" id="saveAdd">Save</button>
+    <button class="btn ghost" id="cancelAdd">Cancel</button>
+  </div>
+</div>
+
+<!-- Row action sheet -->
+<div class="sheet-bg" id="rowBg">
+  <div class="sheet">
+    <h2 id="r-title">Expense</h2>
+    <div class="note-line" id="r-note"></div>
+    <button class="act" id="a-sent">Mark sent to David (today)</button>
+    <button class="act" id="a-reimb">Mark reimbursed (today)</button>
+    <button class="act" id="a-amt">Set / edit amount (from receipt)</button>
+    <button class="act" id="a-unsend">Clear sent / reimbursed</button>
+    <button class="btn danger" id="a-del">Delete</button>
+    <button class="btn ghost" id="closeRow">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL="https://tuxfqgdsjjczkdwkekfy.supabase.co";
+const SB_KEY="sb_publishable_0WSFtp3KLg1wixOtSZlwVQ_dVF0Ychr";
+const db=supabase.createClient(SB_URL,SB_KEY);
+const money=n=>(n<0?"-$":"$")+Math.abs(Number(n)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const $=s=>document.querySelector(s);
+let rows=[], filter="ready", current=null;
+
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+
+async function load(){
+  const [{data:tot},{data:ex,error}] = await Promise.all([
+    db.from("madeira_totals").select("*").single(),
+    db.from("madeira_expenses").select("*").order("expense_date",{ascending:false,nullsFirst:false}).order("ref_no",{ascending:true})
+  ]);
+  if(error){$("#list").innerHTML=`<div class="empty">Couldn't load: ${error.message}</div>`;return;}
+  if(tot){$("#t-spent").textContent=money(tot.spent);$("#t-reimb").textContent=money(tot.reimbursed);$("#t-batch2").textContent=money(tot.batch2_ready);}
+  rows=ex||[];render();
+}
+
+function statusOf(r){
+  if(r.reimbursed) return {cls:"b-reimb",txt:"Reimbursed"};
+  if(r.sent_to_david) return {cls:"b-sent",txt:"Sent · awaiting"};
+  if(r.amount!=null) return {cls:"b-ready",txt:"Ready to send"};
+  return {cls:"b-need",txt:"Needs receipt"};
+}
+function match(r){
+  if(filter==="all") return true;
+  if(filter==="ready") return r.amount!=null && !r.sent_to_david;
+  if(filter==="need") return r.amount==null;
+  if(filter==="done") return !!r.sent_to_david;
+}
+function render(){
+  const l=$("#list");const items=rows.filter(match);
+  if(!items.length){l.innerHTML='<div class="empty">Nothing here.</div>';return;}
+  l.innerHTML=items.map(r=>{
+    const s=statusOf(r);
+    const sub=[r.store_source||r.vendor||"",r.expense_date||""].filter(Boolean).join(" · ");
+    const amt=r.amount!=null?`<div class="amt">${money(r.amount)}</div>`:`<div class="amt none">need receipt</div>`;
+    return `<div class="card" data-id="${r.id}">
+      <div class="main"><div class="desc">${esc(r.description)}</div>
+        <div class="sub">${esc(sub)}</div>
+        <span class="badge ${s.cls}">${s.txt}</span></div>${amt}</div>`;
+  }).join("");
+}
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// filters
+$("#chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b));filter=b.dataset.f;render();});
+
+// add
+const addBg=$("#addBg");
+$("#add").onclick=()=>{$("#f-date").value=new Date().toISOString().slice(0,10);addBg.classList.add("open");};
+$("#cancelAdd").onclick=()=>addBg.classList.remove("open");
+addBg.addEventListener("click",e=>{if(e.target===addBg)addBg.classList.remove("open");});
+$("#saveAdd").onclick=async()=>{
+  const desc=$("#f-desc").value.trim();if(!desc){toast("Description required");return;}
+  const amtRaw=$("#f-amt").value.trim();const amount=amtRaw===""?null:Number(amtRaw.replace(/[^0-9.\-]/g,""));
+  if(amtRaw!==""&&isNaN(amount)){toast("Bad amount");return;}
+  const row={description:desc,amount,expense_date:$("#f-date").value||null,
+    store_source:$("#f-store").value.trim()||null,category:$("#f-cat").value.trim()||null,
+    notes:$("#f-notes").value.trim()||null,receipt_backed:amount!=null,batch:amount!=null?"batch2":null};
+  const {error}=await db.from("madeira_expenses").insert(row);
+  if(error){toast(error.message);return;}
+  ["f-desc","f-amt","f-store","f-cat","f-notes"].forEach(i=>$("#"+i.replace(/^/,"#")).value="");
+  document.querySelectorAll("#addBg input").forEach(i=>i.value="");
+  addBg.classList.remove("open");toast("Added");load();
+};
+
+// row actions
+const rowBg=$("#rowBg");
+$("#list").addEventListener("click",e=>{const c=e.target.closest(".card");if(!c)return;
+  current=rows.find(r=>r.id==c.dataset.id);if(!current)return;
+  $("#r-title").textContent=current.description;
+  $("#r-note").textContent=[current.amount!=null?money(current.amount):"no amount",current.notes||""].filter(Boolean).join(" · ");
+  rowBg.classList.add("open");});
+$("#closeRow").onclick=()=>rowBg.classList.remove("open");
+rowBg.addEventListener("click",e=>{if(e.target===rowBg)rowBg.classList.remove("open");});
+const today=()=>new Date().toISOString().slice(0,10);
+async function upd(patch){const {error}=await db.from("madeira_expenses").update(patch).eq("id",current.id);
+  rowBg.classList.remove("open");if(error){toast(error.message);return;}toast("Saved");load();}
+$("#a-sent").onclick=()=>upd({sent_to_david:today()});
+$("#a-reimb").onclick=()=>upd({reimbursed:today(),sent_to_david:current.sent_to_david||today()});
+$("#a-unsend").onclick=()=>upd({sent_to_david:null,reimbursed:null});
+$("#a-amt").onclick=()=>{const v=prompt("Amount from the receipt (blank = none):",current.amount??"");if(v===null)return;
+  const n=v.trim()===""?null:Number(v.replace(/[^0-9.\-]/g,""));if(v.trim()!==""&&isNaN(n)){toast("Bad amount");return;}
+  upd({amount:n,receipt_backed:n!=null,batch:n!=null&&!current.sent_to_david?"batch2":current.batch});};
+$("#a-del").onclick=async()=>{if(!confirm("Delete this expense?"))return;
+  const {error}=await db.from("madeira_expenses").delete().eq("id",current.id);
+  rowBg.classList.remove("open");if(error){toast(error.message);return;}toast("Deleted");load();};
+
+load();
+</script>
+</body>
+</html>
